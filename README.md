@@ -13,7 +13,7 @@ This repository provides Python example code to:
 
 These tools are designed to support robust derivatives risk management and quantitative analysis.
 
-Users are advised to install [`Quantlib`](https://www.quantlib.org) library:
+Users are advised to install [`QuantLib`](https://www.quantlib.org) library:
 pip install quantlib
 
 ## DISCLAIMERS:

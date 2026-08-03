@@ -1,4 +1,4 @@
-# Merton jump diffusion model
+# Merton jump diffusion model.
 
 # The simulation includes both continuous diffusion and discrete jumps.
 # Jumps occur randomly with intensity lamb and sizes log-normally distributed with mean m and volatility v.

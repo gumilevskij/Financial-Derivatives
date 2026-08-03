@@ -7,22 +7,9 @@
 # The short rate binomial tree and swaption price are plotted for visualization.
 
 import numpy as np
+import scipy.stats as stats
 import matplotlib.pyplot as plt
 
-# Hull-White parameters
-a = 0.1          # mean reversion speed
-sigma = 0.01     # volatility
-r0 = 0.03        # initial short rate
-T_expiry = 5     # swaption expiry in years
-S = 10           # swap maturity in years
-dt = 1.0         # yearly steps for simplicity
-N = int(T_expiry / dt)  # number of steps to expiry
-
-# Tree parameters
-u = np.exp(sigma * np.sqrt(dt))
-d = 1 / u
-
-flat_rate = 0.03
 
 def discount_factor(t):
     return np.exp(-flat_rate * t)
@@ -44,8 +31,6 @@ def forward_swap_rate(t, r):
     numerator = bond_price(t, times[0], r) - bond_price(t, times[-1] + dt, r)
     denominator = swap_annuity(t, r)
     return numerator / denominator
-
-K = 0.02  # swaption strike
 
 def build_short_rate_tree(r0, u, d, N):
     tree = [np.array([r0])]
@@ -78,45 +63,90 @@ def price_swaption_binomial(tree, K, N, dt):
         values_next = swaption_values
         swaption_values = np.zeros(step + 1)
         rates = tree[step]
-        p = 0.5  # risk-neutral probability
         for i in range(step + 1):
             disc = np.exp(-rates[i] * dt)
             swaption_values[i] = disc * (p * values_next[i + 1] + (1 - p) * values_next[i])
     return swaption_values[0]
 
-# Build base tree and price
+def greeks():
+    """Compute Geeks."""
+    # Build base tree and price
+    base_tree = build_short_rate_tree(r0, u, d, N)
+    base_price = price_swaption_binomial(base_tree, K, N, dt)
+    
+    # Greeks calculation via finite differences
+    
+    # Delta: price sensitivity to small change in initial short rate r0
+    h = 0.0001
+    tree_up = build_short_rate_tree(r0 + h, u, d, N)
+    price_up = price_swaption_binomial(tree_up, K, N, dt)
+    
+    tree_down = build_short_rate_tree(r0 - h, u, d, N)
+    price_down = price_swaption_binomial(tree_down, K, N, dt)
+    
+    delta = (price_up - price_down) / (2 * h)
+    
+    # Gamma: second order sensitivity to initial short rate
+    gamma = (price_up - 2 * base_price + price_down) / (h ** 2)
+    
+    # Theta: sensitivity to time decay (price change if expiry moves closer by dt)
+    # Price with expiry reduced by dt (N-1 steps)
+    if N > 1:
+        tree_theta = build_short_rate_tree(r0, u, d, N - 1)
+        price_theta = price_swaption_binomial(tree_theta, K, N - 1, dt)
+        theta = (price_theta - base_price) / dt
+    else:
+        theta = np.nan  # Not defined for N=1
+        
+    return base_price,delta,gamma,theta
+
+def black_swaption_greeks(F, K, sigma, T, A):
+    """Black model."""
+    # Calculate d1 and d2
+    d1 = (np.log(F / K) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+    #d2 = d1 - sigma * np.sqrt(T)
+
+    # Greeks calculation
+    delta = A * stats.norm.cdf(d1)                      # Sensitivity to forward swap rate
+    vega = A * F * stats.norm.pdf(d1) * np.sqrt(T)     # Sensitivity to volatility
+    theta = - (A * F * stats.norm.pdf(d1) * sigma) / (2 * np.sqrt(T))  # Time decay
+    gamma = A * stats.norm.pdf(d1) / (F * sigma * np.sqrt(T))          # Convexity wrt forward rate
+
+    return delta,vega,theta,gamma
+
+# Hull-White parameters
+a = 0.1          # mean reversion speed
+sigma = 0.01     # volatility
+r0 = 0.03        # initial short rate
+T_expiry = 5     # swaption expiry in years
+S = 10           # swap maturity in years
+dt = 1.0         # yearly steps for simplicity
+N = int(T_expiry / dt)  # number of steps to expiry
+
+# Tree parameters
+u = np.exp(sigma * np.sqrt(dt))
+d = 1 / u
+
+flat_rate = 0.03
+# Risk-neutral probability
+p = 0.5 
+# Swaption strike
+K = 0.02  
+
+# Annuity
+A = swap_annuity(T_expiry, flat_rate)
+# Forward swap rate
+F = forward_swap_rate(T_expiry, flat_rate)
+
+base_price,delta,gamma,theta = greeks()
 base_tree = build_short_rate_tree(r0, u, d, N)
-base_price = price_swaption_binomial(base_tree, K, N, dt)
-
-# Greeks calculation via finite differences
-
-# Delta: price sensitivity to small change in initial short rate r0
-h = 0.0001
-tree_up = build_short_rate_tree(r0 + h, u, d, N)
-price_up = price_swaption_binomial(tree_up, K, N, dt)
-
-tree_down = build_short_rate_tree(r0 - h, u, d, N)
-price_down = price_swaption_binomial(tree_down, K, N, dt)
-
-delta = (price_up - price_down) / (2 * h)
-
-# Gamma: second order sensitivity to initial short rate
-gamma = (price_up - 2 * base_price + price_down) / (h ** 2)
-
-# Theta: sensitivity to time decay (price change if expiry moves closer by dt)
-# Price with expiry reduced by dt (N-1 steps)
-if N > 1:
-    tree_theta = build_short_rate_tree(r0, u, d, N - 1)
-    price_theta = price_swaption_binomial(tree_theta, K, N - 1, dt)
-    theta = (price_theta - base_price) / dt
-else:
-    theta = np.nan  # Not defined for N=1
+delta_b,vega_b,theta_b,gamma_b = black_swaption_greeks(F, K, sigma, T_expiry, A)
 
 # Output results
 print(f"Swaption Price: {base_price:.6f}")
-print(f"Delta: {delta:.6f}")
-print(f"Gamma: {gamma:.6f}")
-print(f"Theta: {theta:.6f}")
+print(f"Delta: {delta:.3f}, Black: {delta_b:.3f}")
+print(f"Gamma: {gamma:.3f}, Black: {gamma_b:.3f}")
+print(f"Theta: {theta:.3f}, Black: {theta_b:.3f}")
 
 # Plot short rate tree (first 6 levels)
 plt.figure(figsize=(10, 6))

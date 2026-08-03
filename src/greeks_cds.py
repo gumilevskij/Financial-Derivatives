@@ -18,12 +18,12 @@ schedule = ql.Schedule(
     ql.Following,
     ql.Unadjusted,
     ql.DateGeneration.Forward,
-    False,
+    False
 )
 
 # Base hazard rate and bumped hazard rate for finite difference
 base_hazard_rate = 0.01
-bump = 0.0001  # 1 basis point bump
+bump = 0.01  # 1 basis point bump
 
 def create_default_curve(hazard_rate):
     hazard_rate_quote = ql.SimpleQuote(hazard_rate)

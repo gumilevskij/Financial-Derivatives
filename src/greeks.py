@@ -1,8 +1,8 @@
 import QuantLib as ql
 
 def numerical_greek(option, bump_func, bump_size=0.01):
-    """
-    Generic numerical Greek calculator using bump-and-revalue.
+    """ Generic numerical Greek calculator using bump-and-revalue.
+    
     bump_func: function to bump the relevant parameter (e.g., spot price, volatility)
     bump_size: size of the bump
     """
@@ -61,5 +61,5 @@ def bump_vol(amount):
 
 numerical_vega = numerical_greek(option, bump_vol, bump_size=0.01)
 
-print(f"Numerical Delta: {numerical_delta:.6f}")
-print(f"Numerical Vega: {numerical_vega:.6f}")
+print(f"Numerical Delta: {numerical_delta:.3e}")
+print(f"Numerical Vega: {numerical_vega:.3e}")

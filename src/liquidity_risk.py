@@ -1,4 +1,4 @@
-#Monte Carlo Simulation with Stochastic Liquidity Factors
+# Monte Carlo Simulation with Stochastic Liquidity Factors
 
 # Models liquidity factors as Ornstein-Uhlenbeck (mean-reverting) processes.
 # Runs 500 Monte Carlo simulations of liquidity factor paths.
@@ -74,7 +74,7 @@ avg_price = liquidity_adjusted_price.mean(axis=1)
 
 dates = pd.date_range(start='2026-01-01', periods=n_days, freq='D')
 
-plt.figure(figsize=(14, 8))
+plt.figure(figsize=(10, 8))
 
 plt.subplot(2, 1, 1)
 plt.plot(dates, avg_liquidity_premium, color='purple', label='Average Liquidity Premium')

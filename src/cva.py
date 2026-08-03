@@ -1,4 +1,7 @@
-# Simulate GBM paths for the underlying asset.
+# Credit Valuation Adjustment (CVA) reduces the value of your asset to reflect the risk that 
+# the counterparty might default.
+
+# Simulates GBM paths for the underlying asset.
 # Autocallable valuation checks early redemption at observation dates and calculates a range accrual coupon based on occupation time within a price range.
 # CVA calculation estimates expected loss due to issuer default using constant hazard rate and recovery assumptions.
 # Plot shows an example path with range accrual boundaries to visualize occupation time.

@@ -1,7 +1,7 @@
 # Credit Valuation Adjustment (CVA) reduces the value of your asset to reflect the risk that 
 # the counterparty might default.
 # Debit Valuation Adjustment (DVA) increases the value of your liability to reflect the possibility 
-# thatentity might default and not have to pay the full amount.
+# that entity might default and you not have to pay the full amount.
 
 # The plot shows CVA increasing linearly with counterparty default probability, 
 # reflecting expected loss on the asset side.

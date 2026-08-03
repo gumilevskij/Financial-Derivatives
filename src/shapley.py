@@ -3,6 +3,7 @@
 # This script generates synthetic portfolio data, runs both allocation methodologies side-by-side, 
 # and generates data to show how they distribute risk across Equity and Mezzanine CDO tranches.
 
+# Conclusions:
 # Dampening Systemic Dominance (Asset 3): Asset 3 represents the highest-variance, most heavily correlated asset 
 # in the pool. In the Mezzanine Tranche, the traditional Shapley value heavily penalizes it. 
 # Dr. Hu''s Dichotomous framework reduces this peak allocation because it recognizes that adding 
@@ -49,7 +50,7 @@ losses = np.exp(raw_data) - 0.8
 losses = np.clip(losses, 0, None)
 
 # 2. CDO Tranche Expected Shortfall (ES 95%) Function
-def compute_tranche_es95(selected_asset_indices, attachment, detachment):
+def compute_tranche_expected_shortfall(selected_asset_indices, attachment, detachment, alpha = 0.95):
     if len(selected_asset_indices) == 0:
         return 0.0
     # Sum up only the assets currently inside the sub-portfolio
@@ -58,7 +59,6 @@ def compute_tranche_es95(selected_asset_indices, attachment, detachment):
     # Calculate Tranche-specific loss segment
     t_loss = np.maximum(0, np.minimum(pool_loss, detachment) - attachment) / (detachment - attachment)
     
-    alpha = 0.95
     cutoff = np.percentile(t_loss, alpha * 100)
     if cutoff == 0 and np.max(t_loss) == 0:
         return 0.0
@@ -73,7 +73,7 @@ def run_shapley(attachment, detachment, samples=500):
         prev_risk = 0.0
         for asset in perm:
             current_assets.append(asset)
-            curr_risk = compute_tranche_es95(current_assets, attachment, detachment)
+            curr_risk = compute_tranche_expected_shortfall(current_assets, attachment, detachment)
             allocations[asset] += (curr_risk - prev_risk)
             prev_risk = curr_risk
     return allocations / samples
@@ -90,8 +90,8 @@ def run_dichotomous(attachment, detachment, samples=500):
             inside_coalition = [a for a in other_assets if np.random.rand() > 0.5]
             
             # Scenario A: Marginal Gain (Admitting asset i into the sub-portfolio)
-            risk_with = compute_tranche_es95(inside_coalition + [i], attachment, detachment)
-            risk_without = compute_tranche_es95(inside_coalition, attachment, detachment)
+            risk_with = compute_tranche_expected_shortfall(inside_coalition + [i], attachment, detachment)
+            risk_without = compute_tranche_expected_shortfall(inside_coalition, attachment, detachment)
             marginal_gain = risk_with - risk_without
             
             # Scenario B: Marginal Loss (Removing asset i from the full environment opposite)

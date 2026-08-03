@@ -29,6 +29,7 @@ plt.xlabel('Log-Moneyness (k)')
 plt.ylabel('Implied Volatility')
 plt.title('SVI Implied Volatility Smile')
 plt.legend()
+plt.grid(True)
 plt.show()
 
 # --- 2. Correlation Structure: Factor Model ---
@@ -76,6 +77,7 @@ plt.xlabel('Maturity (Years)')
 plt.ylabel('Yield')
 plt.title('Nelson-Siegel Term Structure')
 plt.legend()
+plt.grid(True)
 plt.show()
 
 # --- 4. Portfolio Sensitivity to Factors ---

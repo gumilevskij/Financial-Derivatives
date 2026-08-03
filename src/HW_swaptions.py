@@ -1,4 +1,4 @@
-# Hull-White swaption pricing code with plots to visualize:
+# Hull-White swaption pricing
 
 # The simulated short rate path up to swaption expiry.
 # The distribution of forward swap rates at expiry.

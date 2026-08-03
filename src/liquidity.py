@@ -1,6 +1,6 @@
-# Calculates bid-ask spread and plotting it.
+# Calculates bid-ask spread.
 # Visualizing market depth (order book volumes).
-# Computes and plotting liquidity gap over time.
+# Computes and plots liquidity gap over time.
 # Adds a simple liquidity risk indicator combining these metrics.
 
 import pandas as pd

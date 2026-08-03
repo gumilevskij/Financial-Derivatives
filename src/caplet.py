@@ -5,8 +5,8 @@
 # to price caplets at each maturity, plotting both the simulated paths and the resulting caplet prices.
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 
 # Black model caplet price function
 def caplet_price(F, K, sigma, T, P, delta):

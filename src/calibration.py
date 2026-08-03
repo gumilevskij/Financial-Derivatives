@@ -1,4 +1,4 @@
-#Vectorized Python implementation for calibrating both SABR and Heston models efficiently:
+# Vectorized Python implementation for calibrating both SABR and Heston models efficiently:
 
 # SABR uses a vectorized Hagan formula for implied volatilities.
 # Heston uses the COS method for fast option pricing.
@@ -10,13 +10,45 @@
 # It was introduced by Fang and Oosterlee (2008) and is widely used because it converges rapidly and is 
 # computationally efficient.
 
-#This code efficiently calibrates SABR and Heston models to a synthetic implied volatility smile 
+# This code efficiently calibrates SABR and Heston models to a synthetic implied volatility smile 
 # using vectorized pricing and global optimization, then plots the fit.
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import differential_evolution, brentq
 from scipy.stats import norm
+import scipy.integrate as integrate
+
+def heston_char_func(u, params, S0, r, T):
+    """Heston characteristic function (Little Heston Trap version)."""
+    kappa, theta, sigma, rho, v0 = params
+    i = 1j
+    x = np.log(S0)
+
+    d = np.sqrt((rho * sigma * i * u - kappa)**2 + (sigma**2) * (i * u + u**2))
+    g = (kappa - rho * sigma * i * u - d) / (kappa - rho * sigma * i * u + d)
+
+    C = (kappa * theta / sigma**2) * ((kappa - rho * sigma * i * u - d) * T - 2 * np.log((1 - g * np.exp(-d * T)) / (1 - g)))
+    D = ((kappa - rho * sigma * i * u - d) / sigma**2) * ((1 - np.exp(-d * T)) / (1 - g * np.exp(-d * T)))
+
+    return np.exp(C + D * v0 + i * u * (x + r * T))
+
+def integrand(u, params, S0, K, r, T, j):
+    i = 1j
+    if j == 1:
+        cf = heston_char_func(u - i, params, S0, r, T) / (S0 * np.exp(r * T))
+    else:
+        cf = heston_char_func(u, params, S0, r, T)
+    numerator = np.exp(-i * u * np.log(K)) * cf
+    denominator = i * u
+    return (numerator / denominator).real
+
+def heston_price(params, S0, K, r, T):
+    P1 = 0.5 + (1 / np.pi) * integrate.quad(integrand, 0, 200, args=(params, S0, K, r, T, 1))[0]
+    P2 = 0.5 + (1 / np.pi) * integrate.quad(integrand, 0, 200, args=(params, S0, K, r, T, 2))[0]
+    call_price = S0 * P1 - K * np.exp(-r * T) * P2
+    return call_price
+
 
 # Vectorized SABR implied vol (Hagan et al.)
 def sabr_implied_vol_vec(F, K, T, alpha, beta, rho, nu):
@@ -113,18 +145,30 @@ def calibration_objective_heston(params, S0, r, T, strikes, market_vols):
 # Example market data
 S0, r, T = 100, 0.03, 1.0
 strikes = np.array([80, 90, 95, 100, 105, 110, 120])
-market_vols = np.array([0.28, 0.24, 0.22, 0.20, 0.21, 0.23, 0.26])
+market_vols = np.array([0.28, 0.25, 0.22, 0.20, 0.21, 0.22, 0.26])
 
 # Calibrate SABR
 res_sabr = differential_evolution(calibration_objective_sabr,
-                                 [(0.01, 1), (0.0, 1.0), (-0.9, 0.9), (0.01, 1.0)],
+                                 bounds=[(0.01, 1), (0.0, 1.0), (-0.9, 0.9), (0.01, 1.0)],
                                  args=(S0*np.exp(r*T), T, strikes, market_vols), maxiter=100)
 
 # Calibrate Heston
 res_heston = differential_evolution(calibration_objective_heston,
-                                   [(0.1, 5), (0.01, 0.5), (0.01, 1), (-0.9, 0.5), (0.01, 0.5)],
+                                   bounds=[(0.1, 5), (0.01, 0.5), (0.01, 1), (-0.9, 0.5), (0.01, 0.5)],
                                    args=(S0, r, T, strikes, market_vols), maxiter=30)
 
+prices = np.empty(len(strikes))
+for i,K in enumerate(strikes):
+    prices[i] = heston_price(res_heston.x, S0, K, r, T)
+    
+plt.figure(figsize=(10, 5))
+plt.plot(strikes, prices)
+plt.title("Heston Model")
+plt.xlabel("Strike")
+plt.ylabel("Price")
+plt.grid(True)
+plt.show()
+    
 # Plot results
 plt.figure(figsize=(10, 5))
 plt.plot(strikes, market_vols, 'ko', label='Market')
@@ -135,6 +179,7 @@ plt.legend()
 plt.title("Model Calibration to Implied Volatility Smile")
 plt.xlabel("Strike")
 plt.ylabel("Implied Volatility")
+plt.grid(True)
 plt.show()
 
 print("Calibrated SABR parameters:", res_sabr.x)

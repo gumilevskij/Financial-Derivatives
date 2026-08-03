@@ -20,7 +20,8 @@ def black_scholes_call_price(S, K, T, r, sigma):
 
 # Implied volatility calculation using Brent's method
 def implied_volatility_call(C_market, S, K, T, r, sigma_bounds=(1e-6, 5.0)):
-    """
+    """Compute implied volatility of call option.
+    
     C_market: Market price of the call option
     S, K, T, r: as above
     sigma_bounds: search interval for volatility

@@ -1,8 +1,6 @@
 # The code defines a portfolio of European call options.
 # It computes portfolio values under increasing volatility shocks (from 1x to 3x base volatility).
 # It computes portfolio values under increasing gap risk (price drops from 0% to 30%).
-# Two plots show how portfolio value decreases with rising volatility and price gaps.
-# Prints base portfolio value and stressed values at maximum shocks.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -59,10 +57,10 @@ values_vol_shock = [portfolio_value(portfolio, spot, volatility_shock(vol, f), r
 # Calculate portfolio values under gap risk (price drops)
 values_gap_risk = [portfolio_value(portfolio, gap_risk(spot, g, 'down'), vol, r) for g in gap_sizes]
 
-# Plot portfolio value vs volatility shock factor
-plt.figure(figsize=(12, 5))
+# Plots show how portfolio value decreases with rising volatility and price gaps.
+plt.figure(figsize=(8, 10))
 
-plt.subplot(1, 2, 1)
+plt.subplot(2, 1, 1)
 plt.plot(vol_shock_factors, values_vol_shock, marker='o')
 plt.title('Portfolio Value vs Volatility Shock Factor')
 plt.xlabel('Volatility Shock Factor (x base vol)')
@@ -70,7 +68,7 @@ plt.ylabel('Portfolio Value ($)')
 plt.grid(True)
 
 # Plot portfolio value vs gap size
-plt.subplot(1, 2, 2)
+plt.subplot(2, 1, 2)
 plt.plot(gap_sizes * 100, values_gap_risk, marker='o', color='red')
 plt.title('Portfolio Value vs Gap Size (Price Drop %)')
 plt.xlabel('Gap Size (%)')
@@ -80,7 +78,7 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-# Print base values for reference
+# Print base portfolio value and stressed values at maximum shocks.
 base_value = portfolio_value(portfolio, spot, vol, r)
 print(f"\nBase Portfolio Value: ${base_value:,.2f}")
 print(f"Portfolio Value at 3x Volatility: ${values_vol_shock[-1]:,.2f}")

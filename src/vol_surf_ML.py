@@ -1,4 +1,4 @@
-#Combines PCA and machine learning (Random Forest) to model and forecast volatility surface dynamics:
+# Combines PCA and machine learning (Random Forest) to model and forecast volatility surface dynamics:
 
 # We simulate a time series of volatility surfaces.
 # Apply PCA to reduce dimensionality to 3 principal components.

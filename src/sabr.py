@@ -2,7 +2,7 @@
 
 # This code computes the SABR implied volatility for a range of strikes around the forward rate.
 # It plots the volatility smile showing how implied volatility varies with strike.
-# The red dashed line marks the forward price F.
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -39,6 +39,7 @@ K_values = np.linspace(0.01, 0.06, 100)
 implied_vols = [sabr_implied_vol(F, K, T, alpha, beta, rho, nu) for K in K_values]
 
 # Plot SABR volatility smile
+# The red dashed line marks the forward price F.
 plt.figure(figsize=(10, 6))
 plt.plot(K_values, implied_vols, label='SABR Implied Volatility')
 plt.axvline(F, color='red', linestyle='--', label='Forward Rate')

@@ -1,3 +1,4 @@
+# Swaption pricing with Quantlib library
 import QuantLib as ql
 
 # Set evaluation date
@@ -95,6 +96,7 @@ def get_bumped_rate_npv(bump):
 
 def get_bumped_vol_npv(bump):
     new_vol = ql.BlackConstantVol(today, calendar, volatility + bump, ql.Actual365Fixed())
+    vol_ts_handle = ql.RelinkableBlackVolTermStructureHandle()
     vol_ts_handle.linkTo(new_vol)
     val = swaption.NPV()
     return val

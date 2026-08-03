@@ -10,6 +10,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from arch import arch_model
+import random
 from scipy.optimize import minimize
 
 def fit_univariate_garch(series):
@@ -72,10 +73,16 @@ def fit_dcc(u):
 
 # Generate synthetic data with constant correlation
 np.random.seed(42)
-T = 500
-corr_true = 0.5
-cov_true = np.array([[1.0, corr_true], [corr_true, 1.0]])
-data = np.random.multivariate_normal(mean=[0,0], cov=cov_true, size=T)
+T = 200
+lst = []; corr_true = []
+for t in range(T):
+    corr = 0.5+0.1*np.sin(t/10) + 0.1*random.random()
+    cov_true = np.array([[1, corr], [corr, 1]])
+    x = np.random.multivariate_normal(mean=[0,0], cov=cov_true, size=1)
+    corr_true.append(corr)
+    lst.append(np.squeeze(x))
+data = np.array(lst)
+corr_true = np.array(corr_true)
 
 # Fit univariate GARCH(1,1) to each series
 std_resid_0 = fit_univariate_garch(data[:,0])
@@ -89,11 +96,13 @@ result = fit_dcc(u)
 
 # Extract time-varying correlations
 corr_ts = result['R_ts'][:, 0, 1]
+err = corr_ts/corr_true - 1
+print(f"Error: {100*np.mean(err):.2f}%")
 
 # Plot
 plt.figure(figsize=(12,6))
 plt.plot(corr_ts, label='Estimated Time-varying Correlation')
-plt.axhline(y=corr_true, color='r', linestyle='--', label='True Constant Correlation')
+plt.scatter(range(T),corr_true, color='r', linestyle='--', label='True Correlation')
 plt.title('DCC(1,1) Estimated Time-varying Correlation with Univariate GARCH')
 plt.xlabel('Time')
 plt.ylabel('Correlation')

@@ -1,6 +1,8 @@
 # Heath-Jarrow-Morton (HJM) model describes the evolution of the instantaneous 
 # forward rate curve: df(t,T)=α(t,T)dt+σ(t,T)dW.
-# where the drift term α(t,T) must satisfy the no arbutrage condition:
+# where σ(t,T) is the volatility function of the forward rate,
+# and the drift term α(t,T) must satisfy the no arbitrage condition:
+# α(t,T) = σ(t,T) * ∫_t^T σ(t,s) ds
 
 # This code:
 # - Simulates the two-factor HJM forward curve and short rates,
